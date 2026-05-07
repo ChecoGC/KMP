@@ -23,7 +23,9 @@ import org.jetbrains.compose.resources.painterResource
 
 import kmp.composeapp.generated.resources.Res
 import kmp.composeapp.generated.resources.compose_multiplatform
+import kotlinx.datetime.IllegalTimeZoneException
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
@@ -38,11 +40,11 @@ fun App() {
         Column(
             modifier = Modifier
                 .safeContentPadding()
-                .fillMaxSize(),
+                .fillMaxSize()
         ) {
             Text(timeAtLocation)
             TextField(value = location, onValueChange = { location = it })
-            Button(onClick = { timeAtLocation = "13:30" }) {
+            Button(onClick = { timeAtLocation = currentTimeAt(location) ?: "Invalid Location" }) {
                 Text("Show Time At Location")
             }
         }
@@ -54,4 +56,17 @@ fun todaysDate(): String {
     val now = Clock.System.now()
     val zone = TimeZone.currentSystemDefault()
     return now.toLocalDateTime(zone).format()
+}
+
+fun currentTimeAt(location: String): String? {
+    fun LocalTime.formatted() = "$hour:$minute:$second"
+
+    return try {
+        val time = Clock.System.now()
+        val zone = TimeZone.of(location)
+        val localTime = time.toLocalDateTime(zone).time
+        "The time in $location is ${localTime.formatted()}"
+    } catch (ex: IllegalTimeZoneException) {
+        null
+    }
 }
